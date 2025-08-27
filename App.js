@@ -6,6 +6,10 @@ import { Text, View, StyleSheet, ActivityIndicator } from 'react-native';
 
 // Import contexts
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { CityProvider } from './contexts/CityContext';
+
+// Import debug utility
+import './config/authDebug';
 
 // Import screens
 import AuthScreen from './screens/AuthScreen';
@@ -60,7 +64,8 @@ const AppContent = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563EB" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Checking authentication...</Text>
+        <Text style={styles.loadingSubtext}>Please wait</Text>
       </View>
     );
   }
@@ -128,7 +133,7 @@ const MainApp = () => {
           name="Home" 
           component={HomeScreen}
           options={{
-            tabBarLabel: 'Home',
+            tabBarLabel: '',
           }}
         />
         
@@ -137,7 +142,7 @@ const MainApp = () => {
           name="Charts" 
           component={ChartScreen}
           options={{
-            tabBarLabel: 'Charts',
+            tabBarLabel: '',
           }}
         />
         
@@ -162,7 +167,9 @@ export default function App() {
       
       {/* Auth Provider wrapping the entire app */}
       <AuthProvider>
-        <AppContent />
+        <CityProvider>
+          <AppContent />
+        </CityProvider>
       </AuthProvider>
     </>
   );
@@ -190,5 +197,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#6b7280',
+    fontWeight: '500',
+  },
+  loadingSubtext: {
+    marginTop: 4,
+    fontSize: 14,
+    color: '#9ca3af',
   },
 });

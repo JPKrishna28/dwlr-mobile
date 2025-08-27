@@ -11,15 +11,18 @@ import {
   Modal,
 } from 'react-native';
 import { supabase } from '../config/supabaseClient';
-import CitySelectionScreen from './CitySelectionScreen';
+import CitySelectionScreen from './CitySelectionScreenFixed';
+import { useCity } from '../contexts/CityContext';
 
 const HomeScreen = () => {
   const [waterLevels, setWaterLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedCity, setSelectedCity] = useState(null);
   const [showCitySelector, setShowCitySelector] = useState(false);
   const [subscription, setSubscription] = useState(null);
+  
+  // Use shared city context
+  const { selectedCity, setSelectedCity } = useCity();
 
   // Format timestamp for display
   const formatTimestamp = (timestamp) => {
@@ -56,20 +59,9 @@ const HomeScreen = () => {
 
   // Handle city selection
   const handleCitySelect = (city) => {
-    setSelectedCity(city);
+    console.log('🏠 HomeScreen: City selected:', city.name);
+    setSelectedCity(city);  // This will trigger the useEffect to load data
     setShowCitySelector(false);
-    setLoading(true);
-    
-    // Unsubscribe from previous subscription
-    if (subscription) {
-      subscription.unsubscribe();
-    }
-    
-    // Fetch data from the new table
-    fetchWaterLevels(city.tableName);
-    
-    // Set up new real-time subscription
-    setupRealtimeSubscription(city.tableName);
   };
 
   // Setup real-time subscription for the selected table
@@ -110,6 +102,25 @@ const HomeScreen = () => {
       setShowCitySelector(true);
     }
   }, []);
+
+  // Respond to city context changes (when city is selected from other screens)
+  useEffect(() => {
+    if (selectedCity && selectedCity.tableName) {
+      console.log('🏠 HomeScreen: Responding to city context change:', selectedCity.name);
+      setLoading(true);
+      
+      // Unsubscribe from previous subscription
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      
+      // Fetch data from the new table
+      fetchWaterLevels(selectedCity.tableName);
+      
+      // Set up new real-time subscription
+      setupRealtimeSubscription(selectedCity.tableName);
+    }
+  }, [selectedCity]);
 
   // Cleanup subscription on component unmount
   useEffect(() => {
@@ -211,16 +222,15 @@ const HomeScreen = () => {
     );
   }
 
-  // Show message if no city is selected
-  if (!selectedCity) {
+    if (!selectedCity) {
     return (
       <View style={styles.loading}>
-        <Text style={styles.loadingText}>Please select a monitoring station</Text>
+        <Text style={styles.loadingText}>Please select a district monitoring station</Text>
         <TouchableOpacity 
           style={styles.selectCityButton} 
           onPress={() => setShowCitySelector(true)}
         >
-          <Text style={styles.selectCityButtonText}>Select Station</Text>
+          <Text style={styles.selectCityButtonText}>Select District</Text>
         </TouchableOpacity>
       </View>
     );

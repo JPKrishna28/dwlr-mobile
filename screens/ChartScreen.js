@@ -12,14 +12,17 @@ import {
 } from 'react-native';
 import { LineChart, BarChart } from 'react-native-chart-kit';
 import { supabase } from '../config/supabaseClient';
-import CitySelectionScreen from './CitySelectionScreen';
+import CitySelectionScreen from './CitySelectionScreenFixed';
+import { useCity } from '../contexts/CityContext';
 
 const ChartScreen = () => {
   const [waterLevels, setWaterLevels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeChart, setActiveChart] = useState('water_level'); // 'water_level', 'battery_level', 'temperature', 'pressure'
-  const [selectedCity, setSelectedCity] = useState(null);
   const [showCitySelector, setShowCitySelector] = useState(false);
+  
+  // Use shared city context
+  const { selectedCity, setSelectedCity } = useCity();
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -101,12 +104,9 @@ const ChartScreen = () => {
 
   // Handle city selection
   const handleCitySelect = (city) => {
-    setSelectedCity(city);
+    console.log('📊 ChartScreen: City selected:', city.name);
+    setSelectedCity(city);  // This will trigger the useEffect to load data
     setShowCitySelector(false);
-    setLoading(true);
-    
-    // Fetch data from the new table
-    fetchWaterLevels(city.tableName);
   };
 
   // Initialize the app - check for available cities
@@ -117,6 +117,17 @@ const ChartScreen = () => {
       setShowCitySelector(true);
     }
   }, []);
+
+  // Respond to city context changes (when city is selected from other screens)
+  useEffect(() => {
+    if (selectedCity && selectedCity.tableName) {
+      console.log('📊 ChartScreen: Responding to city context change:', selectedCity.name);
+      setLoading(true);
+      
+      // Fetch data from the new table
+      fetchWaterLevels(selectedCity.tableName);
+    }
+  }, [selectedCity]);
 
   // Subscribe to real-time updates for selected city
   useEffect(() => {
@@ -233,12 +244,12 @@ const ChartScreen = () => {
   if (!selectedCity) {
     return (
       <View style={styles.loading}>
-        <Text style={styles.loadingText}>Please select a monitoring station</Text>
+        <Text style={styles.loadingText}>Please select a district monitoring station</Text>
         <TouchableOpacity 
           style={styles.selectCityButton} 
           onPress={() => setShowCitySelector(true)}
         >
-          <Text style={styles.selectCityButtonText}>Select Station</Text>
+          <Text style={styles.selectCityButtonText}>Select District</Text>
         </TouchableOpacity>
       </View>
     );

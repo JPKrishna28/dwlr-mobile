@@ -11,87 +11,147 @@ import {
 import { supabase } from '../config/supabaseClient';
 
 const CitySelectionScreen = ({ onCitySelect }) => {
-  const [cities, setCities] = useState([]);
+  const [districts, setDistricts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [showStations, setShowStations] = useState(false);
 
-  // Available cities with their corresponding table names
-  const availableCities = [
+  // Available districts with their monitoring stations
+  const availableDistricts = [
     {
-      id: 'city1',
-      name: 'City 1',
-      tableName: 'water_levels', // Original table
-      description: 'Primary monitoring station',
-      icon: '🏙️',
-      color: '#2563eb',
+      id: 'eluru',
+      name: 'Eluru District',
+      description: 'Eluru District monitoring stations',
+      icon: '🌾',
+      color: '#059669',
+      stations: [
+        {
+          id: 'eluru_station1',
+          name: 'Eluru Station 1',
+          tableName: 'water_levels',
+          description: 'Primary Eluru monitoring station',
+          icon: '📍',
+        },
+        {
+          id: 'eluru_station2', 
+          name: 'Eluru Station 2',
+          tableName: 'water_levels2',
+          description: 'Secondary Eluru monitoring station',
+          icon: '📍',
+        }
+      ]
     },
     {
-      id: 'city2',
-      name: 'City 2',
-      tableName: 'water_levels2', // New table for city 2
-      description: 'Secondary monitoring station',
-      icon: '🌆',
-      color: '#059669',
+      id: 'krishna',
+      name: 'Krishna District',
+      description: 'Krishna District monitoring stations',
+      icon: '🏞️',
+      color: '#2563eb',
+      stations: [
+        {
+          id: 'krishna_station1',
+          name: 'Krishna Station 1', 
+          tableName: 'water_levels3',
+          description: 'Primary Krishna monitoring station',
+          icon: '📍',
+        },
+        {
+          id: 'krishna_station2',
+          name: 'Krishna Station 2',
+          tableName: 'water_levels4',
+          description: 'Secondary Krishna monitoring station',
+          icon: '📍',
+        }
+      ]
     },
   ];
 
   // Check which tables exist in the database
-  const checkAvailableTables = async () => {
+  const checkAvailableDistricts = async () => {
     setLoading(true);
-    const availableCitiesFiltered = [];
+    const availableDistrictsFiltered = [];
 
-    for (const city of availableCities) {
-      try {
-        // Try to query the table to see if it exists
-        const { data, error } = await supabase
-          .from(city.tableName)
-          .select('id')
-          .limit(1);
+    for (const district of availableDistricts) {
+      const availableStations = [];
+      
+      for (const station of district.stations) {
+        try {
+          // Try to query the table to see if it exists
+          const { data, error } = await supabase
+            .from(station.tableName)
+            .select('id')
+            .limit(1);
 
-        if (!error) {
-          // Table exists, add to available cities
-          availableCitiesFiltered.push(city);
+          if (!error) {
+            // Table exists, add to available stations
+            availableStations.push(station);
+          }
+        } catch (err) {
+          console.log(`Table ${station.tableName} not available:`, err.message);
         }
-      } catch (err) {
-        console.log(`Table ${city.tableName} not available:`, err.message);
+      }
+
+      if (availableStations.length > 0) {
+        availableDistrictsFiltered.push({
+          ...district,
+          stations: availableStations
+        });
       }
     }
 
-    setCities(availableCitiesFiltered);
+    setDistricts(availableDistrictsFiltered);
     setLoading(false);
-
-    // Auto-select first city if only one is available
-    if (availableCitiesFiltered.length === 1) {
-      handleCitySelect(availableCitiesFiltered[0]);
-    }
   };
 
-  const handleCitySelect = (city) => {
-    setSelectedCity(city);
-    // Store selected city in local state and pass to parent
-    onCitySelect(city);
+  const handleDistrictSelect = (district) => {
+    setSelectedDistrict(district);
+    setSelectedStation(null);
+    setShowStations(true);
+  };
+
+  const handleStationSelect = (station) => {
+    setSelectedStation(station);
+    // Create a combined object for the parent component
+    const selectedLocation = {
+      id: station.id,
+      name: `${selectedDistrict.name} - ${station.name}`,
+      tableName: station.tableName,
+      description: station.description,
+      icon: selectedDistrict.icon,
+      color: selectedDistrict.color,
+      district: selectedDistrict.name,
+      station: station.name
+    };
+    onCitySelect(selectedLocation);
+  };
+
+  const handleBackToDistricts = () => {
+    setShowStations(false);
+    setSelectedDistrict(null);
+    setSelectedStation(null);
   };
 
   useEffect(() => {
-    checkAvailableTables();
+    checkAvailableDistricts();
   }, []);
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563eb" />
-        <Text style={styles.loadingText}>Checking available monitoring stations...</Text>
+        <Text style={styles.loadingText}>Checking available district monitoring stations...</Text>
       </View>
     );
   }
 
-  if (cities.length === 0) {
+  if (districts.length === 0) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🚫</Text>
-        <Text style={styles.emptyTitle}>No Monitoring Stations Available</Text>
+        <Text style={styles.emptyTitle}>No District Monitoring Stations Available</Text>
         <Text style={styles.emptyDescription}>
-          Please contact your administrator to set up monitoring stations.
+          Please contact your administrator to set up district monitoring stations.
         </Text>
       </View>
     );
@@ -102,89 +162,103 @@ const CitySelectionScreen = ({ onCitySelect }) => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>🌊 Groundwater Monitoring</Text>
-        <Text style={styles.subtitle}>Select your monitoring station</Text>
+        <Text style={styles.subtitle}>
+          {!showStations ? 
+            'Select your district' : 
+            `Select monitoring station in ${selectedDistrict?.name}`
+          }
+        </Text>
+        {showStations && (
+          <TouchableOpacity style={styles.backButton} onPress={handleBackToDistricts}>
+            <Text style={styles.backButtonText}>← Back to Districts</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* City Selection Cards */}
+      {/* District/Station Selection */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.cardsContainer}>
-          {cities.map((city) => (
-            <TouchableOpacity
-              key={city.id}
-              style={[
-                styles.cityCard,
-                selectedCity?.id === city.id && styles.cityCardSelected,
-              ]}
-              onPress={() => handleCitySelect(city)}
-              activeOpacity={0.8}
-            >
-              <View style={styles.cityCardContent}>
-                <View style={styles.cityCardHeader}>
-                  <Text style={styles.cityIcon}>{city.icon}</Text>
-                  <View style={styles.cityInfo}>
-                    <Text style={[
-                      styles.cityName,
-                      selectedCity?.id === city.id && styles.cityNameSelected
-                    ]}>
-                      {city.name}
-                    </Text>
-                    <Text style={[
-                      styles.cityDescription,
-                      selectedCity?.id === city.id && styles.cityDescriptionSelected
-                    ]}>
-                      {city.description}
-                    </Text>
+          {!showStations ? (
+            // Show Districts
+            districts.map((district) => (
+              <TouchableOpacity
+                key={district.id}
+                style={[
+                  styles.districtCard,
+                  { borderColor: district.color }
+                ]}
+                onPress={() => handleDistrictSelect(district)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.districtIcon}>{district.icon}</Text>
+                    <View style={styles.districtInfo}>
+                      <Text style={styles.districtName}>{district.name}</Text>
+                      <Text style={styles.districtDescription}>{district.description}</Text>
+                      <Text style={styles.stationCount}>
+                        {district.stations.length} monitoring station{district.stations.length !== 1 ? 's' : ''}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={[styles.colorIndicator, { backgroundColor: district.color }]} />
+              </TouchableOpacity>
+            ))
+          ) : (
+            // Show Stations for Selected District
+            selectedDistrict?.stations.map((station) => (
+              <TouchableOpacity
+                key={station.id}
+                style={[
+                  styles.stationCard,
+                  selectedStation?.id === station.id && styles.stationCardSelected,
+                ]}
+                onPress={() => handleStationSelect(station)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.cardContent}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.stationIcon}>{station.icon}</Text>
+                    <View style={styles.stationInfo}>
+                      <Text style={[
+                        styles.stationName,
+                        selectedStation?.id === station.id && styles.stationNameSelected
+                      ]}>
+                        {station.name}
+                      </Text>
+                      <Text style={[
+                        styles.stationDescription,
+                        selectedStation?.id === station.id && styles.stationDescriptionSelected
+                      ]}>
+                        {station.description}
+                      </Text>
+                      <Text style={[
+                        styles.tableName,
+                        selectedStation?.id === station.id && styles.tableNameSelected
+                      ]}>
+                        Table: {station.tableName}
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 
-                <View style={styles.cityCardFooter}>
-                  <Text style={[
-                    styles.tableName,
-                    selectedCity?.id === city.id && styles.tableNameSelected
-                  ]}>
-                    Table: {city.tableName}
-                  </Text>
-                  
-                  {selectedCity?.id === city.id && (
-                    <View style={styles.selectedBadge}>
-                      <Text style={styles.selectedBadgeText}>✓ Selected</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-              
-              {selectedCity?.id === city.id && (
-                <View style={[styles.selectedIndicator, { backgroundColor: city.color }]} />
-              )}
-            </TouchableOpacity>
-          ))}
+                {selectedStation?.id === station.id && (
+                  <View style={[styles.selectedIndicator, { backgroundColor: selectedDistrict.color }]} />
+                )}
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
-
-      {/* Action Button */}
-      {selectedCity && (
-        <View style={styles.actionContainer}>
-          <TouchableOpacity
-            style={[styles.proceedButton, { backgroundColor: selectedCity.color }]}
-            onPress={() => {
-              Alert.alert(
-                'Station Selected',
-                `You have selected ${selectedCity.name}. The app will now display data from ${selectedCity.tableName}.`,
-                [{ text: 'Continue', onPress: () => {} }]
-              );
-            }}
-          >
-            <Text style={styles.proceedButtonText}>
-              Continue to {selectedCity.name}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Info Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          {cities.length} monitoring station{cities.length !== 1 ? 's' : ''} available
+          {!showStations ? 
+            `${districts.length} district${districts.length !== 1 ? 's' : ''} available` :
+            `${selectedDistrict?.stations.length || 0} station${(selectedDistrict?.stations.length || 0) !== 1 ? 's' : ''} in ${selectedDistrict?.name}`
+          }
         </Text>
       </View>
     </View>
@@ -259,6 +333,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
     textAlign: 'center',
+    marginBottom: 16,
+  },
+  backButton: {
+    alignSelf: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 20,
+  },
+  backButtonText: {
+    color: '#2563eb',
+    fontWeight: '600',
+    fontSize: 14,
   },
   scrollView: {
     flex: 1,
@@ -268,7 +355,22 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 16,
   },
-  cityCard: {
+  districtCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  stationCard: {
     backgroundColor: 'white',
     borderRadius: 16,
     marginBottom: 16,
@@ -284,48 +386,67 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     overflow: 'hidden',
   },
-  cityCardSelected: {
+  stationCardSelected: {
     borderColor: '#2563eb',
     shadowColor: '#2563eb',
     shadowOpacity: 0.3,
     elevation: 6,
   },
-  cityCardContent: {
+  cardContent: {
     padding: 20,
   },
-  cityCardHeader: {
+  cardHeader: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
   },
-  cityIcon: {
+  districtIcon: {
     fontSize: 32,
     marginRight: 16,
   },
-  cityInfo: {
+  stationIcon: {
+    fontSize: 24,
+    marginRight: 16,
+  },
+  districtInfo: {
     flex: 1,
   },
-  cityName: {
+  stationInfo: {
+    flex: 1,
+  },
+  districtName: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#374151',
     marginBottom: 4,
   },
-  cityNameSelected: {
+  stationName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  stationNameSelected: {
     color: '#2563eb',
   },
-  cityDescription: {
+  districtDescription: {
     fontSize: 14,
     color: '#6b7280',
     lineHeight: 20,
+    marginBottom: 4,
   },
-  cityDescriptionSelected: {
+  stationDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  stationDescriptionSelected: {
     color: '#3b82f6',
   },
-  cityCardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  stationCount: {
+    fontSize: 12,
+    color: '#059669',
+    fontWeight: '600',
   },
   tableName: {
     fontSize: 12,
@@ -335,16 +456,12 @@ const styles = StyleSheet.create({
   tableNameSelected: {
     color: '#6b7280',
   },
-  selectedBadge: {
-    backgroundColor: '#dcfce7',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  selectedBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#059669',
+  colorIndicator: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
   },
   selectedIndicator: {
     position: 'absolute',
@@ -352,29 +469,6 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-  },
-  actionContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  proceedButton: {
-    backgroundColor: '#2563eb',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  proceedButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
   },
   footer: {
     paddingVertical: 16,

@@ -40,8 +40,9 @@ const AuthScreen = ({ onAuthStateChange }) => {
       }
 
       if (data.user) {
-        Alert.alert('Success', 'Login successful!');
-        onAuthStateChange && onAuthStateChange(data.user);
+        console.log('✅ Login successful for:', data.user.email);
+        // The AuthContext will automatically handle the state change
+        // No need to manually call onAuthStateChange
       }
     } catch (err) {
       console.error('Login error:', err);
