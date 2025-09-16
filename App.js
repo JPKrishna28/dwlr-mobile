@@ -16,6 +16,7 @@ import AuthScreen from './screens/AuthScreen';
 import HomeScreen from './screens/HomeScreen';
 import ChartScreen from './screens/ChartScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import PredictionScreen from './screens/PredictionScreen';
 
 // Create bottom tab navigator
 const Tab = createBottomTabNavigator();
@@ -28,6 +29,8 @@ const TabIcon = ({ focused, color, title }) => {
         return '🏠';
       case 'Charts':
         return '📊';
+      case 'Predict':
+        return '🔮';
       case 'Profile':
         return '⚙️';
       default:
@@ -123,7 +126,12 @@ const MainApp = () => {
             <TabIcon 
               focused={focused} 
               color={color} 
-              title={route.name === 'Home' ? 'Home' : route.name === 'Charts' ? 'Charts' : 'Profile'} 
+              title={
+                route.name === 'Home' ? 'Home' : 
+                route.name === 'Charts' ? 'Charts' : 
+                route.name === 'Predict' ? 'Predict' : 
+                'Profile'
+              } 
             />
           ),
         })}
@@ -141,6 +149,15 @@ const MainApp = () => {
         <Tab.Screen 
           name="Charts" 
           component={ChartScreen}
+          options={{
+            tabBarLabel: '',
+          }}
+        />
+
+        {/* Prediction Tab - ML forecasting */}
+        <Tab.Screen 
+          name="Predict" 
+          component={PredictionScreen}
           options={{
             tabBarLabel: '',
           }}

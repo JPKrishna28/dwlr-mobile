@@ -1,3 +1,11 @@
+// Load environment configuration first
+import './config/environment';
+
+// Override global flags BEFORE any React Native modules load
+global.__REACT_NATIVE_BRIDGELESS__ = false;
+global.__TURBO_MODULES_ENABLED__ = false;
+global.__FABRIC_ENABLED__ = false;
+
 import { registerRootComponent } from 'expo';
 
 import App from './App';

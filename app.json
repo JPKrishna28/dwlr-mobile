@@ -6,12 +6,22 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
+    "sdkVersion": "54.0.0",
+    "jsEngine": "jsc",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
     "description": "Monitor groundwater levels with real-time data visualization and multi-city support",
-    "privacy": "public",
     "platforms": [
       "ios",
       "android"
+    ],
+    "scheme": "groundwater-insights",
+    "plugins": [],
+    "assetBundlePatterns": [
+      "**/*",
+      "assets/fonts/*"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",

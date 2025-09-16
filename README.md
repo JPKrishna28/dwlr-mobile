@@ -11,9 +11,11 @@ A React Native mobile application built with Expo for monitoring groundwater dat
   - 🌡️ Temperature monitoring
   - 🔧 Pressure measurements
 - **🔄 Real-time Updates**: Live data synchronization using Supabase subscriptions
-- **📱 Modern UI**: Clean, responsive design with React Native StyleSheet
+- **📱 Modern UI**: Clean, responsive design with NativeWind (Tailwind CSS)
 - **🚪 Session Management**: Automatic login persistence and secure logout
 - **📈 Statistics Dashboard**: Comprehensive analytics with min/max/average calculations
+- **🔮 Prediction**: Machine learning predictions for future water levels
+- **🌆 Multi-City Support**: Support for multiple cities and monitoring stations
 
 ## 📱 Screens
 
@@ -24,17 +26,19 @@ A React Native mobile application built with Expo for monitoring groundwater dat
    - Pressure measurements  
    - Temperature readings
    - Battery level monitoring
-4. **⚙️ Profile Screen**: User management, app settings, and database statistics
+4. **🔮 Prediction Screen**: Future water level predictions using machine learning
+5. **⚙️ Profile Screen**: User management, app settings, and database statistics
 
 ## 🛠 Tech Stack
 
-- **Framework**: React Native with Expo SDK
+- **Framework**: React Native with Expo SDK 54
 - **🔐 Authentication**: Supabase Auth with email/password
 - **🗄️ Database**: Supabase (PostgreSQL) with Row Level Security
 - **📊 Charts**: react-native-chart-kit with 4 data visualizations
-- **🧭 Navigation**: React Navigation v6 (Bottom Tabs + Auth Flow)
-- **🎨 Styling**: React Native StyleSheet (responsive design)
+- **🧭 Navigation**: Expo Router for file-based routing
+- **🎨 Styling**: NativeWind (Tailwind CSS)
 - **⚡ Real-time**: Supabase Real-time subscriptions with automatic reconnection
+- **🔮 ML**: Machine learning algorithms for water level prediction
 
 ## 📊 Database Schema
 
@@ -43,11 +47,22 @@ The app connects to a Supabase table called `water_levels` with the following sc
 ```sql
 CREATE TABLE water_levels (
   id BIGSERIAL PRIMARY KEY,
+  station_id UUID REFERENCES stations(id),
   timestamp TIMESTAMPTZ NOT NULL,
   water_level DECIMAL,
   pressure DECIMAL,
   temperature DECIMAL,
   battery_level DECIMAL
+);
+
+CREATE TABLE stations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  city TEXT NOT NULL,
+  latitude DECIMAL,
+  longitude DECIMAL,
+  elevation DECIMAL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ```
 
