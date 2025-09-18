@@ -85,7 +85,7 @@ const ChartScreen = () => {
         .from(tableName)
         .select('*')
         .order('timestamp', { ascending: true })
-        .limit(20); // Limit to last 20 readings for better chart display
+        .limit(10); // Limit to last 20 readings for better chart display
 
       if (error) {
         console.error(`Error fetching data from ${tableName}:`, error);

@@ -31,7 +31,7 @@ const TabIcon = ({ focused, color, title }) => {
         return '📊';
       case 'Predict':
         return '🔮';
-      case 'Profile':
+      case 'Settings':
         return '⚙️';
       default:
         return '📱';
@@ -112,7 +112,7 @@ const MainApp = () => {
           
           // Tab bar label styling
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 8,
             fontWeight: '500',
             marginTop: -4,
           },
@@ -130,7 +130,7 @@ const MainApp = () => {
                 route.name === 'Home' ? 'Home' : 
                 route.name === 'Charts' ? 'Charts' : 
                 route.name === 'Predict' ? 'Predict' : 
-                'Profile'
+                'Settings'
               } 
             />
           ),
@@ -165,10 +165,10 @@ const MainApp = () => {
         
         {/* Profile Tab - Settings and info */}
         <Tab.Screen 
-          name="Profile" 
+          name="Settings" 
           component={ProfileScreen}
           options={{
-            tabBarLabel: 'Settings',
+            tabBarLabel: '',
           }}
         />
       </Tab.Navigator>

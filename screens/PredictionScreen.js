@@ -68,7 +68,7 @@ const PredictionScreen = () => {
       // Validate pressure data (optional)
       if (record.pressure !== null && record.pressure !== undefined && record.pressure !== '') {
         const pressureNum = parseFloat(record.pressure);
-        if (isNaN(pressureNum) || !isFinite(pressureNum) || pressureNum < 800 || pressureNum > 1200) {
+        if (isNaN(pressureNum) || !isFinite(pressureNum) || pressureNum < 0 || pressureNum > 12000) {
           console.warn('Record has invalid pressure value, setting to null:', record.pressure);
           record.pressure = null;
         }
